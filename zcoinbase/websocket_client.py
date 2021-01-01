@@ -2,6 +2,7 @@ import websocket
 import json
 import logging
 import threading
+from functools import partialmethod
 
 from .util import LogLevel
 
@@ -54,33 +55,31 @@ class CoinbaseWebsocket:
     self.channels_to_function = channels_to_function
     self.preparse_json = preparse_json
     self.log_level = log_level
-    self.__ws__ = websocket.WebSocketApp(self.websocket_addr,
-                                         on_message=lambda ws, msg: self.on_message(ws, msg),
-                                         on_error=lambda ws, err: self.on_error(ws, err),
-                                         on_close=lambda ws: self.on_close(ws),
-                                         on_open=lambda ws: self.on_open(ws))
+    self.ws = websocket.WebSocketApp(self.websocket_addr,
+                                     on_message=lambda ws, msg: self.on_message(ws, msg),
+                                     on_error=lambda ws, err: self.on_error(ws, err),
+                                     on_close=lambda ws: self.on_close(ws),
+                                     on_open=lambda ws: self.on_open(ws))
     if autostart:
-      self.ws_thread = self.start_websocket_thread()
+      self.ws_thread = threading.Thread(target=self.start_websocket)
+      self.ws_thread.start()
 
   def __del__(self):
     self.close_websocket()
 
-  def start_websocket_thread(self):
-    x = threading.Thread(target=self.start_websocket)
-    x.start()
-    return x
-
   def start_websocket(self):
-    self.__ws__.run_forever()
+    self.ws.run_forever()
 
   def close_websocket(self):
-    self.__ws__.close()
+    self.ws.close()
 
   @staticmethod
   def make_subscribe(product_ids=None, channels=None):
     if product_ids is None or channels is None:
       raise SyntaxError('Must specify channels and product_ids')
-    return json.dumps({'type': 'subscribe', 'product_ids': product_ids, 'channels': channels})
+    subscribe_msg = json.dumps({'type': 'subscribe', 'product_ids': product_ids, 'channels': channels})
+    print(subscribe_msg)
+    return subscribe_msg
 
   def add_channel_function(self, channel, function):
     self.channels_to_function[channel] = function
