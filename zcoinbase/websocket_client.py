@@ -2,7 +2,6 @@ import websocket
 import json
 import logging
 import threading
-from functools import partialmethod
 
 from .util import LogLevel
 

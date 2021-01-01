@@ -1,6 +1,4 @@
 import time
-import logging
-from functools import partial
 
 from absl import app
 
