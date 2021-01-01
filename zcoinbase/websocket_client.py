@@ -11,6 +11,7 @@ SPECIAL_CHANNELS = ['error', 'close', 'open']
 
 
 # TODO: Support Authenticated Websocket
+# noinspection PyUnusedLocal
 class CoinbaseWebsocket:
   def __init__(self, websocket_addr='wss://ws-feed-public.sandbox.pro.coinbase.com',
                products_to_listen=None,
@@ -101,12 +102,14 @@ class CoinbaseWebsocket:
       self.channels_to_function['open'](ws)
 
   def on_error(self, ws, err):
+    del ws  # We don't use this, but it's required by WebSocketApp.
     if self.log_level >= LogLevel.ERROR_LOG:
       logging.error('Error Received: {}'.format(err))
     if 'error' in self.channels_to_function:
       self.channels_to_function['error'](json.loads(err) if self.preparse_json else err)
 
   def on_message(self, ws, message):
+    del ws  # We don't use this, but it's required by WebSocketApp.
     if self.log_level >= LogLevel.VERBOSE_LOG:
       logging.info('Message Received: {}'.format(message))
     json_msg = json.loads(message)
