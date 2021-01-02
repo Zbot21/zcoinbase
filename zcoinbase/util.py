@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, auto
 
 
 class LogLevel(Enum):
@@ -22,3 +22,49 @@ class LogLevel(Enum):
     if self.__class__ is other.__class__:
       return self.value >= other.value
     return NotImplemented
+
+
+class OrderSide(Enum):
+  BUY = auto()
+  SELL = auto()
+
+
+class TimeInForce(Enum):
+  GOOD_TILL_CANCEL = 'GTC'
+  GOOD_UNTIL_TIME = 'GTT'
+  IMMEDIATE_OR_CANCEL = 'IOC'
+  FILL_OR_KILL = 'FOK'
+
+
+class Stop(Enum):
+  NONE = 'none'
+  LOSS = 'loss'
+  ENTRY = 'entry'
+
+
+class SelfTradePrevention(Enum):
+  DECREASE_AND_CANCEL = 'dc'
+  CANCEL_OLDEST = 'co'
+  CANCEL_NEWEST = 'cn'
+  CANCEL_BOTH = 'cb'
+
+
+class OrderStatus(Enum):
+  OPEN = 'open'
+  PENDING = 'pending'
+  ACTIVE = 'active'
+
+
+class TransferType(Enum):
+  DEPOSIT = 'deposit'
+  WITHDRAW = 'withdraw'
+
+
+class ReportType(Enum):
+  FILLS = 'fills'
+  ACCOUNT = 'account'
+
+
+class ReportFormat(Enum):
+  PDF = 'pdf'
+  CSV = 'csv'
