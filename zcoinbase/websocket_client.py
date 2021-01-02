@@ -5,9 +5,8 @@ import threading
 
 from .util import LogLevel
 
-
 # Special Channels that are not used by coinbase, but are internal to connecting and disconnecting from coinbase.
-SPECIAL_CHANNELS = ['error', 'close', 'open']
+SPECIAL_CHANNELS = ['error', 'close', 'open', 'subscriptions']
 
 
 # TODO: Support Authenticated Websocket
@@ -18,7 +17,7 @@ class CoinbaseWebsocket:
                channels_to_function=None,
                preparse_json=True,
                autostart=True,
-               log_level=LogLevel.ERROR_LOG):
+               log_level=LogLevel.BASIC_MESSAGES):
     """Constructor for the CoinbaseWebsocket.
 
     Minimal Usage:
@@ -81,23 +80,27 @@ class CoinbaseWebsocket:
     print(subscribe_msg)
     return subscribe_msg
 
-  def add_channel_function(self, channel, function):
+  def add_channel_function(self, channel, function, refresh_subscriptions=True):
     self.channels_to_function[channel] = function
+    if refresh_subscriptions:
+      self.subscribe()
 
-  def add_product(self, product):
+  def add_product(self, product, refresh_subscriptions=True):
     self.products_to_listen.append(product)
+    if refresh_subscriptions:
+      self.subscribe()
 
-  def subscribe(self, ws):
-    ws.send(CoinbaseWebsocket.make_subscribe(self.products_to_listen,
-                                             [channel for channel in self.channels_to_function.keys() if
-                                              channel not in SPECIAL_CHANNELS]))
+  def subscribe(self):
+    self.ws.send(CoinbaseWebsocket.make_subscribe(self.products_to_listen,
+                                                  [channel for channel in self.channels_to_function.keys() if
+                                                   channel not in SPECIAL_CHANNELS]))
 
   def on_open(self, ws):
     if self.log_level >= LogLevel.BASIC_MESSAGES:
       logging.info('Coinbase Websocket Connection ({})'.format(self.websocket_addr))
     # Subscribe to defaults.
     if self.products_to_listen and self.channels_to_function:
-      self.subscribe(ws)
+      self.subscribe()
     if 'open' in self.channels_to_function:
       self.channels_to_function['open'](ws)
 
