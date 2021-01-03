@@ -70,15 +70,15 @@ class AuthenticatedClient(PublicClient):
       'price': price,
       'size': size,
       'product_id': product_id,
-      'time_in_force': time_in_force,
-      'stp': self_trade_prevention
+      'time_in_force': time_in_force.value,
+      'stp': self_trade_prevention.value
     }
     if cancel_after is not None:
       params['cancel_after'] = cancel_after
     if post_only is not None:
       params['post_only'] = post_only
     if stop is not Stop.NONE:
-      params['stop'] = stop
+      params['stop'] = stop.value
       params['stop_price'] = stop_price
     response = self._send_post('orders', params=params)
     response['client_oid'] = params['client_oid']
@@ -100,14 +100,14 @@ class AuthenticatedClient(PublicClient):
       'client_oid': AuthenticatedClient.make_order_uuid(),
       'side': 'buy' if side == OrderSide.BUY else 'sell',
       'product_id': product_id,
-      'stp': self_trade_prevention,
+      'stp': self_trade_prevention.value,
     }
     if size is not None:
       params['size'] = size
     if funds is not None:
       params['funds'] = funds
     if stop is not Stop.NONE:
-      params['stop'] = stop
+      params['stop'] = stop.value
       params['stop_price'] = stop_price
     response = self._send_post('orders', params=params)
     response['client_oid'] = params['client_oid']

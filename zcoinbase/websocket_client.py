@@ -4,10 +4,12 @@ import logging
 import threading
 
 from .util import LogLevel
+from .coinbase_auth import CoinbaseAuth
 
 # Special Channels that are not used by coinbase, but are internal to connecting and disconnecting from coinbase.
-SPECIAL_CHANNELS = ['error', 'close', 'open', 'subscriptions']
-
+SPECIAL_CHANNELS = ['error', 'close', 'open', 'subscriptions', 'l2update']
+# Private channels for
+PRIVATE_CHANNELS = ['open', 'received', 'match', 'change', 'activate']
 
 # TODO: Support Authenticated Websocket
 # noinspection PyUnusedLocal
@@ -17,13 +19,16 @@ class CoinbaseWebsocket:
                channels_to_function=None,
                preparse_json=True,
                autostart=True,
-               log_level=LogLevel.BASIC_MESSAGES):
+               log_level=LogLevel.BASIC_MESSAGES,
+               api_key=None, api_secret=None, passphrase=None):
     """Constructor for the CoinbaseWebsocket.
 
     Minimal Usage:
       # This will subscribe to the heartbeat channel and print all messages on the websocket.
       cbws = CoinbaseWebsocket(products_to_listen='BTC-USD',
                                channels_to_function={'heartbeat': lambda msg: print(msg) })
+
+    All three api_key, api_secret, and passphrase are required for authenticated websocket.
 
     Args:
       websocket_addr: The address to subscribe to. Default is prod, but you should use Sandbox for testing.
@@ -40,10 +45,14 @@ class CoinbaseWebsocket:
           "error": Error Handler (gets json or string message)
           "close": Handle on-close (parameter is websocket)
           "open": Handle on-open (parameter is websocket)
+          "full": Used to subscribe to authenticated messages.
       preparse_json: (Default: True) Should we pass json to channels to function or simply the string?
       autostart: (Default: True) Start the websocket by default.
       log_level: (Default: ERROR_LOG) The LOG_LEVEL to use for this class, by default, will only report errors (using
         python logging api)
+      api_key: (optional) API Key for Authenticated Websocket
+      api_secret: (optional) API Secret for Authenticated Websocket
+      passphrase: (optional) passphrase for authenticated websocket
     """
     if products_to_listen is None:
       products_to_listen = []
@@ -54,6 +63,9 @@ class CoinbaseWebsocket:
     self.channels_to_function = channels_to_function
     self.preparse_json = preparse_json
     self.log_level = log_level
+    self.api_key = api_key
+    self.api_secret = api_secret
+    self.passphrase = passphrase
     self.ws = websocket.WebSocketApp(self.websocket_addr,
                                      on_message=lambda ws, msg: self.on_message(ws, msg),
                                      on_error=lambda ws, err: self.on_error(ws, err),
@@ -73,12 +85,14 @@ class CoinbaseWebsocket:
     self.ws.close()
 
   @staticmethod
-  def make_subscribe(product_ids=None, channels=None):
+  def make_subscribe(product_ids=None, channels=None,
+                     api_key=None, api_secret=None, passphrase=None):
     if product_ids is None or channels is None:
       raise SyntaxError('Must specify channels and product_ids')
-    subscribe_msg = json.dumps({'type': 'subscribe', 'product_ids': product_ids, 'channels': channels})
-    print(subscribe_msg)
-    return subscribe_msg
+    subscribe_msg = {'type': 'subscribe', 'product_ids': product_ids, 'channels': channels}
+    if api_key and api_secret and passphrase:
+      subscribe_msg.update(CoinbaseAuth.get_websocket_verification(api_key, api_secret, passphrase))
+    return json.dumps(subscribe_msg)
 
   def add_channel_function(self, channel, function, refresh_subscriptions=True):
     self.channels_to_function[channel] = function
@@ -93,7 +107,8 @@ class CoinbaseWebsocket:
   def subscribe(self):
     self.ws.send(CoinbaseWebsocket.make_subscribe(self.products_to_listen,
                                                   [channel for channel in self.channels_to_function.keys() if
-                                                   channel not in SPECIAL_CHANNELS]))
+                                                   channel not in SPECIAL_CHANNELS and channel not in PRIVATE_CHANNELS],
+                                                  self.api_key, self.api_secret, self.passphrase))
 
   def on_open(self, ws):
     if self.log_level >= LogLevel.BASIC_MESSAGES:
@@ -118,6 +133,9 @@ class CoinbaseWebsocket:
     json_msg = json.loads(message)
     if 'type' in json_msg and json_msg['type'] in self.channels_to_function:
       self.channels_to_function[json_msg['type']](json_msg if self.preparse_json else message)
+    # For full channel, record everything!
+    if 'full' in self.channels_to_function:
+      self.channels_to_function['full'](json_msg if self.preparse_json else message)
 
   def on_close(self, ws):
     if self.log_level >= LogLevel.BASIC_MESSAGES:

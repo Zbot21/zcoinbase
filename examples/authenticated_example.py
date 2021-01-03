@@ -14,7 +14,6 @@ SANDBOX_REST = 'https://api-public.sandbox.pro.coinbase.com'
 def main(argv):
   config = configparser.ConfigParser()
   config.read('coinbase_sandbox.ini')
-  print(config.sections())
   auth_client = AuthenticatedClient(api_key=config['Coinbase']['api_key'],
                                     api_secret=config['Coinbase']['api_secret'],
                                     passphrase=config['Coinbase']['passphrase'],
