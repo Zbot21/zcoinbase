@@ -11,7 +11,7 @@ If you plan on using this API, you should familiarize yourself with the Coinbase
 
 ## Using
 
-zcoibase is hosted on PiPy, so the easiest way to get started is to run:
+zcoibase is hosted on PyPI, so the easiest way to get started is to run:
 `pip install zcoinbase`
 
 ### Examples
