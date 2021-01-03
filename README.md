@@ -9,13 +9,19 @@ REST, Websocket and FIX APIs)
 ## Coinbase API
 If you plan on using this API, you should familiarize yourself with the Coinbase Pro API here: https://docs.pro.coinbase.com/ 
 
+## Using
+
+zcoibase is hosted on PiPy, so the easiest way to get started is to run:
+`pip install zcoinbase`
+
+### Examples
+Examples on how to use zcoinbase can be found in the `examples` directory.
+
 ## Warning
 This API is in a highly experimental, developmental state, use at your own risk.
 
 ## Under Developement
 In order of Priorities, here are the TODOs for this.
-- Release to PyPi
-- Authenticated Websocket  
 - Simple Client for Dealing with Websocket Messages (Real-time Market)
   - The idea for this is to provide a real-time interface to the market that does not
     require *any* knowledge of how the Websocket API works
