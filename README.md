@@ -14,6 +14,10 @@ If you plan on using this API, you should familiarize yourself with the Coinbase
 zcoibase is hosted on PyPI, so the easiest way to get started is to run:
 `pip install zcoinbase`
 
+## Notable Features
+* Easy-to-use, function-based Websocket client with support for functional programming of websocket messages.
+* Features a Websocket-based real-time Order-book on the websocket API.
+
 ### Examples
 Examples on how to use zcoinbase can be found in the `examples` directory.
 

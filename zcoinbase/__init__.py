@@ -3,3 +3,4 @@ from zcoinbase.util import OrderSide, TimeInForce, SelfTradePrevention, Stop, Or
   ReportFormat, LogLevel
 from zcoinbase.public_client import PublicClient
 from zcoinbase.authenticated_client import AuthenticatedClient
+from zcoinbase.coinbase_order_book import CoinbaseOrderBook

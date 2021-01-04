@@ -10,8 +10,20 @@ class PublicClient(RestClient):
   Attributes:
     rest_url: REST API URL. Defaults to https://api.pro.coinbase.com
   """
-  def __init__(self, rest_url='https://api.pro.coinbase.com'):
+
+  _SANDBOX_URL = 'https://api-public.sandbox.pro.coinbase.com'
+  _PROD_URL = 'https://api.pro.coinbase.com'
+
+  def __init__(self, rest_url=_PROD_URL):
     super().__init__(rest_url)
+
+  @classmethod
+  def make_prod_client(cls):
+    return cls(rest_url=cls._PROD_URL)
+
+  @classmethod
+  def make_sandbox_client(cls):
+    return cls(rest_url=cls._SANDBOX_URL)
 
   def get_products(self):
     return self._send_get('products')
