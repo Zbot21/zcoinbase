@@ -143,9 +143,10 @@ class CoinbaseWebsocket:
       self.subscribe()
 
   def add_product(self, product, refresh_subscriptions=True):
-    self.products_to_listen.append(product)
-    if refresh_subscriptions:
-      self.subscribe()
+    if product not in self.products_to_listen:
+      self.products_to_listen.append(product)
+      if refresh_subscriptions:
+        self.subscribe()
 
   def add_channel(self, channel, refresh_subscriptions=True):
     self.extra_channels.append(channel)

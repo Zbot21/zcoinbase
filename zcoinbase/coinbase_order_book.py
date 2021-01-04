@@ -3,6 +3,7 @@
 from operator import neg
 from sortedcontainers import SortedDict
 from threading import Lock
+from typing import Text
 
 from zcoinbase import CoinbaseWebsocket
 
@@ -20,9 +21,10 @@ class ProductOrderBook:
     self.first_asks_lock.acquire()
 
   def top_n_string(self, n=None):
-    """Returns the "Top-N" asks/bids in the order-book.
+    """Returns the "Top-N" asks/bids in the order-book in string form.
 
-
+    Params:
+      n: How many of the top
     """
     self.bids_lock.acquire()
     self.asks_lock.acquire()
@@ -35,18 +37,33 @@ class ProductOrderBook:
     return formatted_string
 
   def get_book(self, top_n=None):
+    """Returns the order book as a dict with keys 'asks' and 'bids' and tuples of [price, size].
+
+    Params:
+      top_n: The depth of the order book to return.
+    """
     return {
       'asks': self.get_asks(top_n=top_n),
       'bids': self.get_bids(top_n=top_n)
     }
 
   def get_asks(self, top_n=None):
+    """Get the 'asks' part of the order book.
+
+    Params:
+      top_n: The depth of the order book to return.
+    """
     self.asks_lock.acquire()
     asks_slice = ProductOrderBook._make_slice(self.asks, stop=top_n)
     self.asks_lock.release()
     return asks_slice
 
   def get_bids(self, top_n=None):
+    """Get the 'bids' part of the order book.
+
+        Params:
+          top_n: The depth of the order book to return.
+        """
     self.bids_lock.acquire()
     bids_slice = ProductOrderBook._make_slice(self.bids, stop=top_n)
     self.bids_lock.release()
@@ -107,6 +124,7 @@ class ProductOrderBook:
       '\n'.join(format_str.format(str(price), str(asks[price])) for price in asks.keys()))
 
   def __repr__(self):
+    """Print the entire order book."""
     self.bids_lock.acquire()
     self.asks_lock.acquire()
     formatted_string = ProductOrderBook._make_formatted_string(self.bids, self.asks)
@@ -145,6 +163,17 @@ class CoinbaseOrderBook:
       return self.order_books[product_id]
     else:
       raise ValueError('Don\'t have order book for {}'.format(product_id))
+
+  def get_tracked_products(self):
+    return self.order_books.keys()
+
+  def add_order_books(self, product_ids: list[Text], refresh_subscriptions=True):
+    for product_id in product_ids:
+      if product_id not in self.order_books:
+        self.order_books[product_id] = ProductOrderBook(product_id)
+        self.coinbase_websocket.add_product(product_id, refresh_subscriptions=False)
+    if refresh_subscriptions:
+      self.coinbase_websocket.subscribe()
 
   def initial_snapshot(self, product_id, bids, asks):
     if product_id in self.order_books:
