@@ -26,15 +26,11 @@ class ProductOrderBook:
     Params:
       n: How many of the top
     """
-    self.bids_lock.acquire()
-    self.asks_lock.acquire()
-    formatted_string = ProductOrderBook._make_formatted_string(
-      bids=ProductOrderBook._make_sorted_dict_slice(self.bids, stop=n),
-      asks=ProductOrderBook._make_sorted_dict_slice(self.asks, stop=n)
-    )
-    self.bids_lock.release()
-    self.asks_lock.release()
-    return formatted_string
+    with self.bids_lock and self.asks_lock:
+      return ProductOrderBook._make_formatted_string(
+        bids=ProductOrderBook._make_sorted_dict_slice(self.bids, stop=n),
+        asks=ProductOrderBook._make_sorted_dict_slice(self.asks, stop=n)
+      )
 
   def get_book(self, top_n=None):
     """Returns the order book as a dict with keys 'asks' and 'bids' and tuples of [price, size].
@@ -53,10 +49,8 @@ class ProductOrderBook:
     Params:
       top_n: The depth of the order book to return.
     """
-    self.asks_lock.acquire()
-    asks_slice = ProductOrderBook._make_slice(self.asks, stop=top_n)
-    self.asks_lock.release()
-    return asks_slice
+    with self.asks_lock:
+      return ProductOrderBook._make_slice(self.asks, stop=top_n)
 
   def get_bids(self, top_n=None):
     """Get the 'bids' part of the order book.
@@ -64,25 +58,21 @@ class ProductOrderBook:
         Params:
           top_n: The depth of the order book to return.
         """
-    self.bids_lock.acquire()
-    bids_slice = ProductOrderBook._make_slice(self.bids, stop=top_n)
-    self.bids_lock.release()
-    return bids_slice
+    with self.bids_lock:
+      bids_slice = ProductOrderBook._make_slice(self.bids, stop=top_n)
 
   # Private API Below this Line.
   def _init_bids(self, bids):
-    self.bids_lock.acquire()
-    for price, size in bids:
-      self.bids[price] = float(size)
-    self.bids_lock.release()
-    self.first_bids_lock.release()
+    with self.bids_lock:
+      for price, size in bids:
+        self.bids[price] = float(size)
+      self.first_bids_lock.release()
 
   def _init_asks(self, asks):
-    self.asks_lock.acquire()
-    for price, size in asks:
-      self.asks[price] = float(size)
-    self.asks_lock.release()
-    self.first_asks_lock.release()
+    with self.asks_lock:
+      for price, size in asks:
+        self.asks[price] = float(size)
+      self.first_asks_lock.release()
 
   def _consume_changes(self, changes):
     for side, price, size in changes:
@@ -93,27 +83,27 @@ class ProductOrderBook:
 
   def _consume_buy(self, price, size):
     fsize = float(size)
+    # Wait for _init_bids to run.
     if self.first_bids_lock.locked():
       self.first_bids_lock.acquire()
       self.first_bids_lock.release()
-    self.bids_lock.acquire()
-    if str(fsize) == '0.0':
-      del self.bids[price]
-    else:
-      self.bids[price] = fsize
-    self.bids_lock.release()
+    with self.bids_lock:
+      if str(fsize) == '0.0':
+        del self.bids[price]
+      else:
+        self.bids[price] = fsize
 
   def _consume_sell(self, price, size):
     fsize = float(size)
+    # Wait for _init_asks to run.
     if self.first_asks_lock.locked():
       self.first_asks_lock.acquire()
       self.first_asks_lock.release()
-    self.asks_lock.acquire()
-    if str(fsize) == '0.0':
-      del self.asks[price]
-    else:
-      self.asks[price] = fsize
-    self.asks_lock.release()
+    with self.asks_lock:
+      if str(fsize) == '0.0':
+        del self.asks[price]
+      else:
+        self.asks[price] = fsize
 
   @staticmethod
   def _make_formatted_string(bids, asks):
@@ -125,12 +115,8 @@ class ProductOrderBook:
 
   def __repr__(self):
     """Print the entire order book."""
-    self.bids_lock.acquire()
-    self.asks_lock.acquire()
-    formatted_string = ProductOrderBook._make_formatted_string(self.bids, self.asks)
-    self.bids_lock.release()
-    self.asks_lock.release()
-    return formatted_string
+    with self.asks_lock and self.bids_lock:
+      return ProductOrderBook._make_formatted_string(self.bids, self.asks)
 
   @staticmethod
   def _make_sorted_dict_slice(orders: SortedDict, start=None, stop=None):
