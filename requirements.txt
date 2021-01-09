@@ -2,6 +2,7 @@ requests
 websocket-client
 sortedcontainers
 python-dateutil
+pandas
 # Optional Dependencies (used for examples and better logging for historical_data_downloader)
 absl-py
 progressbar2

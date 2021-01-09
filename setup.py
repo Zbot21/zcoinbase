@@ -15,5 +15,6 @@ setup(
   install_requires=['requests',
                     'websocket-client',
                     'sortedcontainers',
-                    'python-dateutil']
+                    'python-dateutil',
+                    'pandas']
 )
