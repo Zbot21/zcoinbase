@@ -49,10 +49,9 @@ def main(argv):
     rest_url=FLAGS.rest_url,
     start_time=FLAGS.start_time,
     end_time=FLAGS.end_time,
-    granularity=FLAGS.granularity,
-    output_filename=FLAGS.output_file
+    granularity=FLAGS.granularity
   )
-  historical_downloader.download_and_write_to_file()
+  historical_downloader.download_and_write_to_file(FLAGS.output_file)
 
 
 if __name__ == '__main__':
