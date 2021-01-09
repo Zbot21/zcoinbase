@@ -1,6 +1,6 @@
 from setuptools import setup
 
-VERSION_NUMBER = '0.0.4'
+VERSION_NUMBER = '0.0.5'
 
 setup(
   name='zcoinbase',
@@ -14,5 +14,6 @@ setup(
   description='A Simple Coinbase Client for the Coinbase Pro API',
   install_requires=['requests',
                     'websocket-client',
-                    'sortedcontainers']
+                    'sortedcontainers',
+                    'python-dateutil']
 )

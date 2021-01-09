@@ -1,4 +1,7 @@
 requests
 websocket-client
-absl-py
 sortedcontainers
+python-dateutil
+# Optional Dependencies (used for examples and better logging for historical_data_downloader)
+absl-py
+progressbar2

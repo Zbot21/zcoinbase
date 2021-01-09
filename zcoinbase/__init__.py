@@ -4,3 +4,4 @@ from zcoinbase.util import OrderSide, TimeInForce, SelfTradePrevention, Stop, Or
 from zcoinbase.public_client import PublicClient
 from zcoinbase.authenticated_client import AuthenticatedClient
 from zcoinbase.coinbase_order_book import CoinbaseOrderBook, ProductOrderBook
+from zcoinbase.historical_data_downloader import HistoricalDownloader

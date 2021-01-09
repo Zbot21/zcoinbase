@@ -9,8 +9,14 @@ class RestClient:
     self.auth = None
 
   def _send_get(self, endpoint, params=None):
-    return RestClient._append_status_code(
-      self.session.get('{}/{}'.format(self.rest_url, endpoint), params=params, auth=self.auth))
+    url = '{}/{}'.format(self.rest_url, endpoint)
+    result = self.session.get(url, params=params, auth=self.auth)
+    if result.status_code != 200:
+      raise RuntimeError('ErrorCode: {} Message: {}\nGET Request to {} w/ params {} FAILED'.format(result.status_code,
+                                                                                                   result.json()[
+                                                                                                     'message'], url,
+                                                                                                   params))
+    return result.json()
 
   def _send_paginated_get(self, endpoint, params=None):
     if params is None:
