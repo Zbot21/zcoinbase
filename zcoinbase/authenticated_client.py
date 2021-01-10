@@ -83,8 +83,7 @@ class AuthenticatedClient(PublicClient):
   def limit_order(self, side: OrderSide, product_id, price, size,
                   time_in_force=TimeInForce.GOOD_TILL_CANCEL,
                   cancel_after=None, post_only=None,
-                  self_trade_prevention=SelfTradePrevention.DECREASE_AND_CANCEL,
-                  stop=Stop.NONE, stop_price=None):
+                  self_trade_prevention=SelfTradePrevention.DECREASE_AND_CANCEL):
     """Places a limit order.
 
     https://docs.pro.coinbase.com/#place-a-new-order
@@ -96,13 +95,11 @@ class AuthenticatedClient(PublicClient):
     if post_only is not None and \
         (time_in_force is TimeInForce.IMMEDIATE_OR_CANCEL or time_in_force is TimeInForce.FILL_OR_KILL):
       raise ValueError('cannot set post_only with IMMEDIATE_OR_CANCEL or FILL_OR_KILL')
-    if stop is not Stop.NONE and stop_price is None:
-      raise ValueError('stop_price is required with LOSS or ENTRY')
 
     params = {
       'type': 'limit',
       'client_oid': AuthenticatedClient.make_order_uuid(),
-      'side': 'buy' if side == OrderSide.BUY else 'sell',
+      'side': side.value,
       'price': price,
       'size': size,
       'product_id': product_id,
@@ -113,28 +110,22 @@ class AuthenticatedClient(PublicClient):
       params['cancel_after'] = cancel_after
     if post_only is not None:
       params['post_only'] = post_only
-    if stop is not Stop.NONE:
-      params['stop'] = stop.value
-      params['stop_price'] = stop_price
     response = self._send_post('orders', params=params)
     response['client_oid'] = params['client_oid']
     return response
 
   def market_order(self, side: OrderSide, product_id, size=None, funds=None,
-                   self_trade_prevention=SelfTradePrevention.DECREASE_AND_CANCEL,
-                   stop=Stop.NONE, stop_price=None):
+                   self_trade_prevention=SelfTradePrevention.DECREASE_AND_CANCEL):
     """Places a market Order.
 
     https://docs.pro.coinbase.com/#place-a-new-order
     """
     if size is None and funds is None:
       raise ValueError('must specify size or funds for market order.')
-    if stop is not Stop.NONE and stop_price is None:
-      raise ValueError('stop_price is required with LOSS or ENTRY')
     params = {
       'type': 'market',
       'client_oid': AuthenticatedClient.make_order_uuid(),
-      'side': 'buy' if side == OrderSide.BUY else 'sell',
+      'side': side.value,
       'product_id': product_id,
       'stp': self_trade_prevention.value,
     }
@@ -142,9 +133,24 @@ class AuthenticatedClient(PublicClient):
       params['size'] = size
     if funds is not None:
       params['funds'] = funds
-    if stop is not Stop.NONE:
-      params['stop'] = stop.value
-      params['stop_price'] = stop_price
+    response = self._send_post('orders', params=params)
+    response['client_oid'] = params['client_oid']
+    return response
+
+  def stop_order(self, side: OrderSide, product_id, size,
+                 stop_type: Stop, stop_price,
+                 self_trade_prevention=SelfTradePrevention.DECREASE_AND_CANCEL):
+    """Places a stop order with the given parameters."""
+    if stop_type is Stop.NONE:
+      raise ValueError('must specify stop_type as LOSS or ENTRY')
+    params = {
+      'side': side.value,
+      'client_oid': AuthenticatedClient.make_order_uuid(),
+      'product_id': product_id,
+      'stp': self_trade_prevention.value,
+      'stop': stop_type.value,
+      'stop_price': stop_price,
+    }
     response = self._send_post('orders', params=params)
     response['client_oid'] = params['client_oid']
     return response

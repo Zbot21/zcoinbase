@@ -27,8 +27,8 @@ class LogLevel(Enum):
 
 
 class OrderSide(Enum):
-  BUY = auto()
-  SELL = auto()
+  BUY = 'buy'
+  SELL = 'sell'
 
 
 class TimeInForce(Enum):
