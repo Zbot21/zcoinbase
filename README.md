@@ -17,6 +17,7 @@ zcoibase is hosted on PyPI, so the easiest way to get started is to run:
 ## Notable Features
 * Easy-to-use, function-based Websocket client with support for functional programming of websocket messages.
 * Features a Websocket-based real-time Order-book on the websocket API.
+* Historical Data Downloader, should make it easy to download historical data from the markets.
 
 ### Examples
 Examples on how to use zcoinbase can be found in the `examples` directory.
