@@ -1,16 +1,52 @@
-import json
+import configparser
 import uuid
 
+from typing import Text
+
 from .coinbase_auth import CoinbaseAuth
-from .public_client import PublicClient
-from .util import OrderSide, TimeInForce, SelfTradePrevention, Stop, OrderStatus, TransferType, ReportType, ReportFormat
+from zcoinbase import PublicClient, OrderSide, TimeInForce, SelfTradePrevention, Stop, OrderStatus, TransferType, \
+  ReportType, ReportFormat
 
 
 class AuthenticatedClient(PublicClient):
   def __init__(self, api_key, api_secret, passphrase,
-               rest_url='https://api.pro.coinbase.com'):
+               rest_url=PublicClient.PROD_URL):
     super().__init__(rest_url)
     self.auth = CoinbaseAuth(api_key, api_secret, passphrase)
+
+  @classmethod
+  def make_from_ini(cls, filename: Text):
+    """Makes an authenticated client from the given config file.
+
+    Example Config:
+      [Coinbase]
+      api_key: [YOUR API KEY]         (required)
+      api_secret: [YOUR API SECRET]   (required)
+      passphrase: [API PASSPHRASE]    (required)
+      backend: [PROD|SANDBOX|URL]     (optional, default PROD)
+
+    Args:
+      filename: The name of the file to read the config from.
+
+    Returns:
+      An initialized AuthenticatedClient from the given config file.
+    """
+    config = configparser.ConfigParser()
+    config.read(filename)
+    api_key = config['Coinbase']['api_key']
+    api_secret = config['Coinbase']['api_secret']
+    passphrase = config['Coinbase']['passphrase']
+    url = PublicClient.PROD_URL
+    if 'backend' in config['Coinbase']:
+      backend_config = config['Coinbase']['backend']
+      if backend_config == 'PROD':
+        url = PublicClient.PROD_URL
+      elif backend_config == 'SANDBOX':
+        url = PublicClient.SANDBOX_URL
+      else:
+        # If it's not PROD or SANDBOX, assume it's a URL.
+        url = backend_config
+    return cls(api_key=api_key, api_secret=api_secret, passphrase=passphrase, rest_url=url)
 
   def get_all_accounts(self):
     """List all accounts.

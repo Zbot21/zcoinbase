@@ -18,7 +18,7 @@ def main(argv):
     products_to_listen=['BTC-USD'],
     channels_to_function={
       'ticker': lambda msg: print('ticker: {}'.format(msg)),  # Subscribe to "ticker" to see ticker.
-      'subscriptions': lambda msg: print('subscriptions: {}'.format(msg)), # Subscriptions
+      'subscriptions': lambda msg: print('subscriptions: {}'.format(msg)),  # Subscriptions
       'full': lambda msg: print('full: {}'.format(msg)),  # Subscribe to "full" channel to see private stuff.
       'received': lambda msg: print('rx: {}'.format(msg)),  # Subscribe to "received" channel to show that orders work.
       'all_messages': lambda msg: print('all: {}'.format(msg)),  # "all_messages" on the channel

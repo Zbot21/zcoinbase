@@ -3,6 +3,8 @@ import json
 import logging
 import threading
 
+from typing import Text, Callable
+
 from .util import LogLevel
 from .coinbase_auth import CoinbaseAuth
 
@@ -31,12 +33,12 @@ class CoinbaseWebsocket:
   SANDBOX_ADDRESS = 'wss://ws-feed-public.sandbox.pro.coinbase.com'
 
   def __init__(self, websocket_addr=PROD_ADDRESS,
-               products_to_listen=None,
-               channels_to_function=None,
-               extra_channels=None,
-               preparse_json=True,
-               autostart=True,
-               log_level=LogLevel.BASIC_MESSAGES,
+               products_to_listen: list[Text] = None,
+               channels_to_function: dict[Text, list[Callable]] = None,
+               extra_channels: list[Text] = None,
+               preparse_json: bool = True,
+               autostart: bool = True,
+               log_level: LogLevel = LogLevel.BASIC_MESSAGES,
                api_key=None, api_secret=None, passphrase=None):
     """Constructor for the CoinbaseWebsocket.
 
@@ -97,7 +99,7 @@ class CoinbaseWebsocket:
                                      on_close=lambda ws: self.on_close(ws),
                                      on_open=lambda ws: self.on_open(ws))
     if autostart:
-      self.ws_thread = threading.Thread(target=self.start_websocket)
+      self.ws_thread = threading.Thread(target=self.start_websocket, daemon=True)
       self.ws_thread.start()
 
   def __del__(self):
@@ -107,7 +109,7 @@ class CoinbaseWebsocket:
     self.ws.run_forever()
 
   def start_websocket_in_thread(self):
-    self.ws_thread = threading.Thread(target=self.start_websocket)
+    self.ws_thread = threading.Thread(target=self.start_websocket, daemon=True)
     self.ws_thread.start()
 
   def close_websocket(self):
