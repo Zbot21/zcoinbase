@@ -137,20 +137,27 @@ class AuthenticatedClient(PublicClient):
     response['client_oid'] = params['client_oid']
     return response
 
-  def stop_order(self, side: OrderSide, product_id, size,
+  def stop_order(self, product_id,
                  stop_type: Stop, stop_price,
+                 size=None, funds=None,
                  self_trade_prevention=SelfTradePrevention.DECREASE_AND_CANCEL):
     """Places a stop order with the given parameters."""
     if stop_type is Stop.NONE:
       raise ValueError('must specify stop_type as LOSS or ENTRY')
+    if not size and not funds:
+      raise ValueError('must specify size or funds.')
     params = {
-      'side': side.value,
+      'side': 'sell' if stop_type is Stop.LOSS else 'buy',
       'client_oid': AuthenticatedClient.make_order_uuid(),
       'product_id': product_id,
       'stp': self_trade_prevention.value,
       'stop': stop_type.value,
       'stop_price': stop_price,
     }
+    if size:
+      params['size'] = size
+    if funds:
+      params['funds'] = funds
     response = self._send_post('orders', params=params)
     response['client_oid'] = params['client_oid']
     return response
