@@ -12,6 +12,8 @@ class AuthenticatedClient(PublicClient):
   def __init__(self, api_key, api_secret, passphrase,
                rest_url=PublicClient.PROD_URL):
     super().__init__(rest_url)
+    if not (api_key and api_secret and passphrase):
+      raise ValueError('api_key, api_secret, and passphrase are required.')
     self.auth = CoinbaseAuth(api_key, api_secret, passphrase)
 
   @classmethod
