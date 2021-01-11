@@ -93,6 +93,7 @@ class CoinbaseWebsocket:
     self.api_key = api_key
     self.api_secret = api_secret
     self.passphrase = passphrase
+    self.ws_opened = threading.Event()
     self.ws = websocket.WebSocketApp(self.websocket_addr,
                                      on_message=lambda ws, msg: self.on_message(ws, msg),
                                      on_error=lambda ws, err: self.on_error(ws, err),
@@ -114,6 +115,9 @@ class CoinbaseWebsocket:
 
   def close_websocket(self):
     self.ws.close()
+
+  def wait_for_open(self):
+    self.ws_opened.wait()
 
   @staticmethod
   def make_subscribe(product_ids=None, channels=None,
@@ -173,6 +177,7 @@ class CoinbaseWebsocket:
   def on_open(self, ws):
     if self.log_level >= LogLevel.BASIC_MESSAGES:
       logging.info('Coinbase Websocket Connection ({})'.format(self.websocket_addr))
+    self.ws_opened.set()
     # Subscribe to defaults.
     if self.products_to_listen and self.channels_to_function:
       self.subscribe()

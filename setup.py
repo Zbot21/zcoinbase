@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION_NUMBER = '0.0.8'
+VERSION_NUMBER = '0.0.9'
 
 setup(
   name='zcoinbase',

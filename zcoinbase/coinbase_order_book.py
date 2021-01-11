@@ -177,6 +177,7 @@ class CoinbaseOrderBook:
                                            autostart=False)
     order_book = cls(coinbase_websocket)
     coinbase_websocket.start_websocket_in_thread()
+    coinbase_websocket.wait_for_open()
     return order_book
 
   def get_order_book(self, product_id) -> ProductOrderBook:
