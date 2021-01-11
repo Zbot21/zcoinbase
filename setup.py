@@ -1,6 +1,6 @@
 from setuptools import setup
 
-VERSION_NUMBER = '0.0.6'
+VERSION_NUMBER = '0.0.7'
 
 setup(
   name='zcoinbase',
