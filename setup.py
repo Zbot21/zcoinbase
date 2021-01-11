@@ -1,11 +1,11 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
-VERSION_NUMBER = '0.0.7'
+VERSION_NUMBER = '0.0.8'
 
 setup(
   name='zcoinbase',
   version=VERSION_NUMBER,
-  packages=['zcoinbase'],
+  packages=find_packages(),
   url='https://github.com/Zbot21/zcoinbase',
   download_url='https://github.com/Zbot21/zcoinbase/archive/v{}.tar.gz'.format(VERSION_NUMBER),
   license='MIT',
