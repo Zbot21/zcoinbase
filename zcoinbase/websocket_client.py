@@ -110,8 +110,9 @@ class CoinbaseWebsocket:
     self.ws.run_forever()
 
   def start_websocket_in_thread(self):
-    self.ws_thread = threading.Thread(target=self.start_websocket, daemon=True)
-    self.ws_thread.start()
+    if not self.ws_opened.is_set():
+      self.ws_thread = threading.Thread(target=self.start_websocket, daemon=True)
+      self.ws_thread.start()
 
   def close_websocket(self):
     self.ws.close()
