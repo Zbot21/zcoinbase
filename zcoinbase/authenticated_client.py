@@ -185,19 +185,20 @@ class AuthenticatedClient(PublicClient):
       params['product_id'] = product_id
     return self._send_delete('orders', params=params)
 
-  def list_orders(self, status: list[OrderStatus], product_id=None):
-    """Lists Current Open Orders.
+  def list_orders(self, status: list[OrderStatus] = None, product_id=None):
+    """Lists Current Open Orders. By default will list w/ All OrderStatus.
 
     https://docs.pro.coinbase.com/#list-orders
     """
     params = {}
     if product_id is not None:
       params['product_id'] = product_id
-    for s in status:
-      try:
+    params['status'] = []
+    if status is None:
+      params['status'] = [status.value for status in OrderStatus]
+    else:
+      for s in status:
         params['status'].append(s.value)
-      except KeyError:
-        params['status'] = [s.value]
     return self._send_paginated_get('orders', params=params)
 
   def get_order(self, order_id, is_client_oid=False):

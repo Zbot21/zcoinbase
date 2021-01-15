@@ -24,6 +24,11 @@ class RestClient:
     url = '{}/{}'.format(self.rest_url, endpoint)
     while True:
       r = self.session.get(url, params=params, auth=self.auth, timeout=30)
+      if r.status_code != 200:
+        raise RuntimeError(
+          'ErrorCode: {}, Message: {}\nPaginated GET Request to {} w/ params {} FAILED'.format(result.status_code,
+                                                                                               result.json['message'],
+                                                                                               url, params))
       results = r.json()
       for result in results:
         yield result

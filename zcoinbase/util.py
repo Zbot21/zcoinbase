@@ -55,6 +55,7 @@ class OrderStatus(Enum):
   OPEN = 'open'
   PENDING = 'pending'
   ACTIVE = 'active'
+  DONE = 'done'
 
 
 class TransferType(Enum):
