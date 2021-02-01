@@ -64,7 +64,7 @@ class HistoricalDownloader:
       self.end_time = end_time
     else:
       raise ValueError('end_time must be either string or datetime.datetime')
-    if start_time > end_time:
+    if self.start_time > self.end_time:
       raise ValueError('start_time must be before end_time')
     if not HistoricalDownloader.validate_granularity(granularity):
       raise ValueError('Granularity must be one of [{}]'.format(HistoricalDownloader.TIMESLICE_MUST_BE_ONE_OF_STRING))
@@ -111,7 +111,9 @@ class HistoricalDownloader:
       bar.finish()
 
   def _download(self, row_function: Callable[[list], None]):
-    """Downloads historical data and calls the row_function with the text of each row."""
+    """Downloads historical data and calls the row_function with the text of each row.
+    columns: [time(seconds since epoch),low,high,open,close,volume]
+    """
     # Set up RateLimitedExecutionQueue with max_calls_per_interval set to 3 and the interval set to 1 second.
     # This matches with the limits configured for coinbase itself.
     with RateLimitedExecutionQueue(max_calls_per_interval=3, interval=1) as queue:
